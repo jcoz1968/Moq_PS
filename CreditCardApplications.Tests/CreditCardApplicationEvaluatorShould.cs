@@ -157,8 +157,8 @@ namespace CreditCardApplications.Tests
                 new Mock<IFrequentFlyerNumberValidator>();
 
             mockValidator.Setup(x => x.ServiceInformation.License.LicenseKey).Returns("OK");
-            //mockValidator.SetupProperty(x => x.ValidationMode);
-            mockValidator.SetupAllProperties();
+            mockValidator.SetupProperty(x => x.ValidationMode);
+            //mockValidator.SetupAllProperties();
 
             var sut = new CreditCardApplicationEvaluator(mockValidator.Object);
 
@@ -168,5 +168,104 @@ namespace CreditCardApplications.Tests
 
             Assert.Equal(ValidationMode.Detailed, mockValidator.Object.ValidationMode);
         }
+
+        [Fact]
+        public void ValidateFrequentFlyerNumberForLowIncomeApplications()
+        {
+            Mock<IFrequentFlyerNumberValidator> mockValidator =
+                new Mock<IFrequentFlyerNumberValidator>();
+
+            mockValidator.Setup(x => x.ServiceInformation.License.LicenseKey).Returns("OK");
+
+            var sut = new CreditCardApplicationEvaluator(mockValidator.Object);
+
+            var application = new CreditCardApplication
+            {
+                FrequentFlyerNumber = "q"
+            };
+
+            sut.Evaluate(application);
+
+            mockValidator.Verify(x => x.IsValid(It.IsAny<string>()), Times.Once);
+        }
+
+        //[Fact]
+        //public void ShouldValidateFrequentFlyerNumberForLowIncomeApplications_CustomMessage()
+        //{
+        //    Mock<IFrequentFlyerNumberValidator> mockValidator =
+        //        new Mock<IFrequentFlyerNumberValidator>();
+
+        //    mockValidator.Setup(x => x.ServiceInformation.License.LicenseKey).Returns("OK");
+
+        //    var sut = new CreditCardApplicationEvaluator(mockValidator.Object);
+
+        //    var application = new CreditCardApplication();
+
+
+        //    sut.Evaluate(application);
+
+        //    mockValidator.Verify(x => x.IsValid(It.IsNotNull<string>()), "Frequent flyer number should not be null.");
+        //}
+
+        [Fact]
+        public void NotValidateFrequentFlyerNumberForHighIncomeApplications()
+        {
+            Mock<IFrequentFlyerNumberValidator> mockValidator =
+                new Mock<IFrequentFlyerNumberValidator>();
+
+            mockValidator.Setup(x => x.ServiceInformation.License.LicenseKey).Returns("OK");
+
+            var sut = new CreditCardApplicationEvaluator(mockValidator.Object);
+
+            var application = new CreditCardApplication
+            {
+                GrossAnnualIncome = 100_000
+            };
+
+            sut.Evaluate(application);
+
+            mockValidator.Verify(x => x.IsValid(It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public void CheckLicenseKeyForLowIncomeApplications()
+        {
+            Mock<IFrequentFlyerNumberValidator> mockValidator =
+                new Mock<IFrequentFlyerNumberValidator>();
+
+            mockValidator.Setup(x => x.ServiceInformation.License.LicenseKey).Returns("OK");
+
+            var sut = new CreditCardApplicationEvaluator(mockValidator.Object);
+
+            var application = new CreditCardApplication
+            {
+                GrossAnnualIncome = 99_000
+            };
+
+            sut.Evaluate(application);
+
+            mockValidator.VerifyGet(x => x.ServiceInformation.License.LicenseKey, Times.Once);
+        }
+
+        [Fact]
+        public void SetDetailedLookupForOlderApplications()
+        {
+            Mock<IFrequentFlyerNumberValidator> mockValidator =
+                new Mock<IFrequentFlyerNumberValidator>();
+
+            mockValidator.Setup(x => x.ServiceInformation.License.LicenseKey).Returns("OK");
+
+            var sut = new CreditCardApplicationEvaluator(mockValidator.Object);
+
+            var application = new CreditCardApplication
+            {
+                Age = 30
+            };
+
+            sut.Evaluate(application);
+
+            mockValidator.VerifySet(x => x.ValidationMode = It.IsAny<ValidationMode>(), Times.Once);
+        }
+
     }
 }
