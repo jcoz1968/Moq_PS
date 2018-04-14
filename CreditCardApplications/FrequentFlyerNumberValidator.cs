@@ -14,6 +14,7 @@ namespace CreditCardApplications
     /// </summary>
     public class FrequentFlyerNumberValidatorService : IFrequentFlyerNumberValidator
     {
+
         public IServiceInformation ServiceInformation
         {
             get
@@ -21,6 +22,8 @@ namespace CreditCardApplications
                 throw new NotImplementedException("For demo purposes");
             }
         }
+
+        public event EventHandler ValidatorLookupPerformed;
 
         public bool IsValid(string frequentFlyerNumber)
         {
